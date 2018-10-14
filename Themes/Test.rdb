@@ -1,0 +1,56 @@
+{
+	"DefaultTextColor":"#cccccc",
+	"keywords":{
+	
+		"test":"#00FF00",
+		"banan":"#A0FF00",
+		"if":"#FF0000",
+		"else":"#FF0000",
+		"this":"#A0FF0F",
+		"for":"#4040FF",
+		"while":"#00FF00",
+		"int":"#00FF00",
+		"static":"#ffff5a",
+		"final":"#00FF00",
+		"String":"#00FF00",
+		"public":"#ffff5a",
+		"void":"#ad5aad",
+		"try":"#00FF00",
+		"catch":"#00FF00",
+		"package":"#46ed46",
+		"super":"#ff3232",
+		"class":"#0000ff",
+		"new":"#ff3232",
+		"extends":"#FF0000",
+		"private":"#FF0000",
+		"boolean":"#66ff66",
+		"--":"#FF0000",
+		"--h":"#FF00FF",
+		"-":"#0000FF",
+		"+h":"#0000FF",
+		"+":"#00FFFF"
+		
+	},
+	
+	"ignore":{
+		"{":true,
+		"}":true,
+		"(":true,
+		")":true,
+		"[":true,
+		"]":true,
+		".":true,
+		";":true,
+		"=":true,
+		"*":true,
+		"/":true,
+		"-":true,
+		"--":true,
+		"--h":true,
+		"+h":true,
+		"+":true
+	}
+	
+
+
+}
