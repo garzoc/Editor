@@ -236,7 +236,7 @@ var Editor=function(){//Instance should be a div
 		return null;
 	}
 	
-	console.log("tesintg")
+	//console.log("tesintg")
 		
 	var ifCanMerge =
 	this.ifCanMerge = function (Head,Tail){
@@ -244,17 +244,23 @@ var Editor=function(){//Instance should be a div
 			console.log(Head.innerHTML.trim() +" "+((n = theme.ignoreSpace("-")) == 0 || (n > 0 && n != "-".length)));
 		}*/
 		
+		
 		var nextNode = Tail.nextSibling;
 		var prevNode = Head.prevSibling;
 		
 		Head = Head.innerHTML;
 		Tail = Tail.innerHTML;
 		
+		//console.log(Head +" & "+Tail);
+		
+		if(Head.trim() == "" || Tail.trim()==""){
+			return true;
+		}
 		
 		
 		if(theme.ignoreSpace(Head) < theme.ignoreSpace(Head + Tail)){
 			//console.log("merge check 1: "+theme.ignoreSpace(Head.trim()) + " "+theme.ignoreSpace(Head.trim() + Tail.trim()));
-			console.log(Head.trim() + " & "+Tail.trim());
+			//console.log(Head.trim() + " & "+Tail.trim());
 			//console.log(Head.trim() + Tail.trim());
 			return true;
 		}
@@ -272,7 +278,7 @@ var Editor=function(){//Instance should be a div
 		}
 		
 		
-		if(Tail!=null && ((!Head.charAt(Head.length-1).isWhiteSpace() && !Tail.charAt(0).isWhiteSpace() && ((n = theme.ignoreSpace(Head.trim())) == 0 || (n > 0 && n != Head.trim().length)) && theme.ignoreSpace(Tail.trim()) == 0) || (!theme.isKeyword(Tail) && !theme.isKeyword(Head)))){
+		if(Tail!=null && ((!Head.charAt(Head.length-1).isWhiteSpace() && !Tail.charAt(0).isWhiteSpace() && ((n = theme.ignoreSpace(Head.trim())) == 0 || (n > 0 && n != Head.trim().length)) && ((n = theme.ignoreSpace(Tail.trim())) == 0 || n!= Tail.trim().length)) || (!theme.isKeyword(Tail) && !theme.isKeyword(Head)))){
 			console.log("merge check 3:");
 			console.log(Head.trim() + " & "+Tail.trim());
 			return true;
@@ -409,27 +415,14 @@ var Editor=function(){//Instance should be a div
 
 	var tryCutBlock =
 	this.tryCutBlock = function (node,Cursor,recursionLevel){
-		
-		var allPos=[];
 		var absPos = getAbsCursorPos(Cursor);//Keep this
-		
-		/*Cursor.forEachOnRow(function(cursor){//Quick fix attempt to fix problems with the themecontroller
-			allPos.push(getAbsCursorPos(cursor));
-		});
-		if(Cursor.getNext() != null) mergeTextBlock(node,Cursor.getNext());
-		if(Cursor.getPrev() != null)mergeTextBlock(Cursor.getPrev(),node);
-		
-		var counter =0;
-		Cursor.forEachOnRow(function(cursor){
-			setAbsCursorPos(allPos[counter].Row,allPos[counter++].Col,cursor);
-		});
-		setAbsCursorPos(absPos.Row,absPos.Col,Cursor);
-		*/
+	
 		var words=node.innerHTML.getWords();
 		
 		var offset = 0;
 		words.forEach(function(word){
 			//console.log(word.string + " "+ theme.isKeyword(word.string) + " "+ !theme.isKeyword(node.innerHTML));
+			//console.log(word.string);
 			if(theme.isKeyword(word.string) && !theme.isKeyword(node.innerHTML)){
 				//console.log(word.string)
 				if(word.start!=0){
@@ -457,40 +450,57 @@ var Editor=function(){//Instance should be a div
 		
 		});
 		
-		cursorPos=Cursor.getCursorPos();
-		if(Cursor.getNode().nextSibling!=null && ifCanMerge(Cursor.getNode(),Cursor.getNode().nextSibling)){//merge
-			//console.log("merge1")
-			Cursor.forEachOnRow(function(cursor){
-				if(cursor.getNode().getIndex() - 1 == Cursor.getNode().getIndex()){
-					cursor.setCursor(cursor.getPrev(),cursor.getPrev().innerHTML.length + cursor.getCursorPos());
+		var merged = false;
+		var once;
+		once = false;
+		do{
+			merged = false;
+			cursorPos=Cursor.getCursorPos();
+			if(Cursor.getNode().nextSibling!=null && ifCanMerge(Cursor.getNode(),Cursor.getNode().nextSibling)){//merge
+				//console.log("merge1")
+				Cursor.forEachOnRow(function(cursor){
+					if(cursor.getNode().getIndex() - 1 == Cursor.getNode().getIndex()){
+						cursor.setCursor(cursor.getPrev(),cursor.getPrev().innerHTML.length + cursor.getCursorPos());
+					}
+				});			
+				node=mergeTextBlock(Cursor.getNode(),Cursor.getNext());
+				
+				Cursor.forEachOnRow(function(cursor){
+						cursor.setCursor(cursor.getNode(), cursor.getCursorPos());
+				});
+				Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
+				merged = true;
+			}
+			
+			if(Cursor.getNode().previousSibling!=null && ifCanMerge(Cursor.getNode().previousSibling,Cursor.getNode())){//merge
+				//console.log("merge2");
+				
+				Cursor.forEachOnNode(function(cursor){
+						cursor.setCursor(cursor.getPrev(), cursor.getPrev().innerHTML.length + cursor.getCursorPos());
+				});
+				Cursor.setCursor(Cursor.getPrev(), Cursor.getPrev().innerHTML.length + Cursor.getCursorPos());
+				
+				node=mergeTextBlock(Cursor.getNode(),Cursor.getNext());
+				
+				Cursor.forEachOnRow(function(cursor){
+						cursor.setCursor(cursor.getNode(), cursor.getCursorPos());
+				});
+				Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
+				
+				if(recursionLevel!=0 && node!=null && !once){
+					once = true;
+					tryCutBlock(node,Cursor,0);
 				}
-			});			
-			node=mergeTextBlock(Cursor.getNode(),Cursor.getNext());
+				merged = true;
+			}
 			
-			Cursor.forEachOnRow(function(cursor){
-					cursor.setCursor(cursor.getNode(), cursor.getCursorPos());
-			});
 			
-			Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
-		}
+			
 		
-		if(Cursor.getNode().previousSibling!=null && ifCanMerge(Cursor.getNode().previousSibling,Cursor.getNode())){//merge
-			//console.log("merge2");
-			
-			Cursor.forEachOnNode(function(cursor){
-					cursor.setCursor(cursor.getPrev(), cursor.getPrev().innerHTML.length + cursor.getCursorPos());
-			});
-			Cursor.setCursor(Cursor.getPrev(), Cursor.getPrev().innerHTML.length + Cursor.getCursorPos());
-			
-			node=mergeTextBlock(Cursor.getNode(),Cursor.getNext());
-			
-			Cursor.forEachOnRow(function(cursor){
-					cursor.setCursor(cursor.getNode(), cursor.getCursorPos());
-			});
-			
-			Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
-			if(recursionLevel!=0 && node!=null)tryCutBlock(node,Cursor,0);
-		}
+		}while(merged);
+		//console.log(Cursor.getNode().parentElement);
+		//if(Cursor.getNext()!=null)setHighlight(Cursor.getNext());
+		//if(Cursor.getPrev()!=null)setHighlight(Cursor.getPrev());
 
 	}
 	

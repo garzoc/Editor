@@ -114,7 +114,15 @@ function loadDOMExtension(){
 				var x = 0;
 				
 				for(n = i; n < this.length && !this.charAt(n).isWhiteSpace(); n++){
-						var x = theme.ignoreSpace(this.substring(n,this.length));	
+						let c,b;
+						//console.log(this.substring(n,theme.keyWordSpace(this.substring(n,this.length))) + " "+ (c=theme.keyWordSpace(this.substring(n,this.length).trim())));
+						b = (c=theme.keyWordSpace(this.substring(n,this.length).trim())) > theme.ignoreSpace(this.substring(n,this.length).trim())?c:0 ;
+						if(b != 0){
+							n += c - 1;//plus one will be added by the for loop argument;
+							continue;//skip the ingore space check
+						}
+						
+						x = theme.ignoreSpace(this.substring(n,this.length));	
 						if(x > 0) break;
 						//else x=n
 				}
@@ -140,6 +148,7 @@ function loadDOMExtension(){
 				}
 				i=n;
 			}
+			
 		}
 		return word_list;
 	}

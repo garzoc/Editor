@@ -45,7 +45,6 @@
 		"*":true,
 		"/":true,
 		"-":true,
-		"--":true,
 		"--h":true,
 		"+h":true,
 		"+":true

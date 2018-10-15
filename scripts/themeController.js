@@ -2,7 +2,7 @@ var ThemeManager=function(){
 	var ThemeContext=null;
 
 	this.loadTheme=function(name){
-	
+		var m = this;
 		var File = new XMLHttpRequest();
 		File.responseType='text';
 		File.open("GET", "Themes/"+name.trim()+".rdb", true);
@@ -11,39 +11,42 @@ var ThemeManager=function(){
 				if(File.status === 200 || File.status == 0){
 					var fileContent = File.responseText;
 					ThemeContext=JSON.parse(fileContent) 
+					ThemeContext.ignoreTree={};
+					ThemeContext.keywordTree={}
+					constructWordTree(ThemeContext.ignore,ThemeContext.ignoreTree);
+					constructWordTree(ThemeContext.keywords,ThemeContext.keywordTree);
+					//console.log(m.keyWordSpace("--"));
+
 					
-					constructWordTree();
 				}
 			}
 		}
 		File.send();
+		
 	
 	};
 	
 	
-	function constructWordTree(){
-		if(ThemeContext == null) return;
-		var ingoreStringsList ={};
-		var strings = {};
-		for(word in ThemeContext.ignore){
+	function constructWordTree(context,tree){
+		if(context == null) return;
+		var stringsList ={};
+		var root = {};
+		for(word in context){
 			if(word.length > 1){
 				//console.log(word);
 				list = word.split("");
 				var n = 0;
-				var currentDepth = strings;
+				var currentDepth = root;
 				while(++n < list.length){
 					currentDepth[list[n-1]]={}
 					currentDepth = currentDepth[list[n-1]];
+					
 				}
-				currentDepth[list[n-1]]=ThemeContext.ignore[word];
+				currentDepth[list[n-1]] = context[word] != false ? true : false;
 			}
 		}
-		ThemeContext.ignore.strings = strings;
-		/*var words = "-f-".getWords();
-		for(word in words){
-			console.log(words[word].string);
-		}*/
-		//console.log(strings);
+		tree.root = root;
+		
 	}
 	
 	
@@ -52,14 +55,50 @@ var ThemeManager=function(){
 		return ThemeContext.keywords[keyword.trim()]!=undefined;
 	}
 	
+	this.isIgnored=function(keyword){
+		
+		return ThemeContext.ignore[keyword.trim()]!=undefined;
+	}
+	
+	this.keyWordSpace = function(string){//strings object shoudl not be present in the keywords list
+		if(string == undefined) return 0;
+		//console.log(string);
+		var currentDepth = ThemeContext.keywordTree.root;
+		var i = 0;
+		
+		var keyWordFound = 0;
+		while(currentDepth[string.charAt(i)] != undefined && i < string.length){
+			if(this.isKeyword(string.substring(0,i))) keyWordFound = i;
+			
+			
+			currentDepth = currentDepth[string.charAt(i++)];
+			
+		}
+		
+		
+		if(this.isKeyword(string.substring(0,i)) != undefined){
+				// console.log(i);
+				return  i;
+		}
+		
+		if(keyWordFound){
+			//console.log(keyWordFound);
+			return keyWordFound;
+		}
+		
+		return 0;
+
+	}
+	
 	this.ignoreSpace = function(string){//Can be a bit difficult with whitespaces so trim when necessary
 		if(string == undefined) return 0;
-		var currentDepth = ThemeContext.ignore.strings;
+		var currentDepth = ThemeContext.ignoreTree.root;
 		var i = 0;
-
+		
+		//console.log(string);
 		while(currentDepth[string.charAt(i)] != undefined && i < string.length){
-			//console.log("input "+string)
-			//console.log(currentDepth[string.charAt(i)]);
+	
+			
 			currentDepth = currentDepth[string.charAt(i++)];
 		}
 		
@@ -67,6 +106,7 @@ var ThemeManager=function(){
 				//console.log("njet "+string)
 				return  i;
 		}
+	
 		
 		
 		//console.log("Stringed "+ string);
