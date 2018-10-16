@@ -1,6 +1,6 @@
 const standardServerPort=8000;
 const startingRows=4;
-const useServer=false;
+const useServer=true;
 const EditorTheme="Test";
 const MaxRecursiveCalls=3;//the maximum recursive calls that can be done one the tryCut function
 
@@ -251,7 +251,6 @@ var Editor=function(){//Instance should be a div
 		Head = Head.innerHTML;
 		Tail = Tail.innerHTML;
 		
-		//console.log(Head +" & "+Tail);
 		
 		if(Head.trim() == "" || Tail.trim()==""){
 			return true;
@@ -259,9 +258,7 @@ var Editor=function(){//Instance should be a div
 		
 		
 		if(theme.ignoreSpace(Head) < theme.ignoreSpace(Head + Tail)){
-			//console.log("merge check 1: "+theme.ignoreSpace(Head.trim()) + " "+theme.ignoreSpace(Head.trim() + Tail.trim()));
-			//console.log(Head.trim() + " & "+Tail.trim());
-			//console.log(Head.trim() + Tail.trim());
+			//console.log("merge check 1:");
 			return true;
 		}
 		
@@ -273,14 +270,14 @@ var Editor=function(){//Instance should be a div
 	
 		
 		if(theme.ignoreSpace(Head.trim()) ==  Head.trim().length && theme.ignoreSpace(Tail.trim()) ==  Tail.trim().length  && theme.isKeyword(Head+Tail)){
-			console.log("merge check 2:");
+			//console.log("merge check 2:");
 				return true;
 		}
 		
 		
 		if(Tail!=null && ((!Head.charAt(Head.length-1).isWhiteSpace() && !Tail.charAt(0).isWhiteSpace() && ((n = theme.ignoreSpace(Head.trim())) == 0 || (n > 0 && n != Head.trim().length)) && ((n = theme.ignoreSpace(Tail.trim())) == 0 || n!= Tail.trim().length)) || (!theme.isKeyword(Tail) && !theme.isKeyword(Head)))){
-			console.log("merge check 3:");
-			console.log(Head.trim() + " & "+Tail.trim());
+			//console.log("merge check 3:");
+			//console.log(Head.trim() + " & "+Tail.trim());
 			return true;
 		}
 		return false;
@@ -418,7 +415,7 @@ var Editor=function(){//Instance should be a div
 		var absPos = getAbsCursorPos(Cursor);//Keep this
 	
 		var words=node.innerHTML.getWords();
-		
+		//console.log(words);
 		var offset = 0;
 		words.forEach(function(word){
 			//console.log(word.string + " "+ theme.isKeyword(word.string) + " "+ !theme.isKeyword(node.innerHTML));
@@ -431,7 +428,7 @@ var Editor=function(){//Instance should be a div
 				}
 				setAbsCursorPos(absPos.Row,absPos.Col,Cursor);
 				
-				if(theme.isKeyword(word.string) && !theme.isKeyword(Cursor.getNode().innerHTML)){
+				if(theme.isKeyword(word.string) && !theme.isKeyword(Cursor.getNode().innerHTML) && (word.end - offset) != node.innerHTML.length){
 					node=splitEditBlock(node,word.end -offset);
 					offset +=word.end -offset ;
 				}
@@ -449,7 +446,6 @@ var Editor=function(){//Instance should be a div
 			}
 		
 		});
-		
 		var merged = false;
 		var once;
 		once = false;
@@ -488,7 +484,7 @@ var Editor=function(){//Instance should be a div
 				Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
 				
 				if(recursionLevel!=0 && node!=null && !once){
-					once = true;
+					//once = true;
 					tryCutBlock(node,Cursor,0);
 				}
 				merged = true;

@@ -206,7 +206,7 @@ function Controller(){
 			else
 				Cursor.setCursor(prevNode,0);
 			prevNode.innerHTML=prevNode.innerHTML.remove(cursorPos,1);
-			
+			$.tryCutBlock(Cursor.getNode(),Cursor);
 		}else if(node.parentElement.previousSibling!=undefined && node.previousSibling==undefined){//step 3
 			
 			var parent=node.parentElement;

@@ -7,7 +7,7 @@ var portfinder=require('portfinder');//https://github.com/indexzero/node-portfin
 portfinder.basePort=8000;
 
 console.log(Sessions_Manager.anySession());
-var session = Sessions_Manager.new("muu");
+var session = Sessions_Manager.new("test");
 
 
 
