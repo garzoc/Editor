@@ -48,19 +48,40 @@ function Controller(){
 
 
 	this.OnPaste = function(node,DATA,Cursor){
-
-		for(var i=0;i<DATA.length;i++){
-			//console.log(DATA.charCodeAt(i)+" char is "+DATA.charAt(i));
+		var rowCounter=1;
+		var date = Date.now();
+		var time = Date.now();
+		var start = 0;
+		var pos = $.getAbsCursorPos(Cursor);
+		var i = 0;
+		
+		for(i=0;i<DATA.length;i++){
+			
 			if(DATA.charCodeAt(i)!=10){
-				$.OnAddChar(node,DATA.charAt(i),Cursor);
-				node = Cursor.getNode();
+				//$.OnAddChar(node,DATA.charAt(i),Cursor);
+				//node = Cursor.getNode();
 			}else{
-				$.OnEnter(node,Cursor);
+				node.innerHTML=node.innerHTML.insert(DATA.substring(start,i-1),Cursor.cursorPos);
+				$.tryCutBlock(node,Cursor);
+				
+				$.setAbsCursorPos(pos.Row,pos.Col + i-1 -start, Cursor);
+				start = i+1;
+				//console.log("Rows done " + (rowCounter++) + " Processing time " + (Date.now()-time));
+				time=Date.now();
+				$.OnEnter(Cursor.getNode(),Cursor);
+				pos = $.getAbsCursorPos(Cursor);
 				node=Cursor.getNode();
 			}
 		}
+		
+		node.innerHTML=node.innerHTML.insert(DATA.substring(start,i-1),Cursor.cursorPos);
+		$.tryCutBlock(node,Cursor);
+		$.setAbsCursorPos(pos.Row,pos.Col + i -1 -start, Cursor);
+
+		//console.log("Total time "+(Date.now()-date));
 
 	}
+	
 
 
 

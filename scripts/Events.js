@@ -79,7 +79,7 @@ var Event = function bindEvents(){
 		var character=String.fromCharCode(e.charCode);
 		if(character!=""){
 			if($.useServer)$.send("OnAddChar",e.target,character);
-			$.OnAddChar(e.target,character, $.localCursor);
+			$.OnAddChar($.localCursor.getNode(),character, $.localCursor);
 			
 		}
 		$.editTextBlock($.localCursor.getNode());
@@ -89,12 +89,18 @@ var Event = function bindEvents(){
 	 
 	$.textBlock.bindEventListener("keyup",function(e){e.stopPropagation();});
 	
+	$.textPasteField.bindEventListener('paste', function (e) {
+		var text = e.clipboardData.getData('text/plain');
+		$.localCursor.getNode().focus();
+		$.OnPaste($.localCursor.getNode(),text,$.localCursor);
+
+	});
 	
 	$.textBlock.bindEventListener("keydown",function(e){
 		//e.preventDefault();//this would prevent keyPress from being triggered
 		
 		//console.log(e.keyCode);
-		var node=e.target;
+		var node=$.localCursor.getNode();
 		 if (e.ctrlKey || e.metaKey) {
         
 			switch (String.fromCharCode(e.which).toLowerCase()) {
@@ -102,31 +108,18 @@ var Event = function bindEvents(){
 					e.preventDefault();
 					if($.useServer)$.send("OnSave");
 					console.log('ctrl-s');
-					break;
+					returnhhhdsj;
 					
 				case 'c':
 					
-					break;
+					return;
 				case 'v':
-					textPasteField.style.visibility="visible";
-					textPasteField.focus();
-					var timeout=10;
-					var textPastedInterval=setInterval(function(){ 
-						if(textPasteField.value!=""){
-							textPasteField.style.visibility="hidden";
-							$.editTextBlock();
-							if($.useServer)$.send("OnPaste",node,textPasteField.value);
-							$.OnPaste(node,textPasteField.value,$.localCursor);
-							textPasteField.value="";
-							clearInterval(textPastedInterval);
-						}
-						if(timeout--==0){
-							textPasteField.style.visibility="hidden";
-							clearInterval(textPastedInterval)
-							
-						}; 
-					},1);
-					break;	
+					//console.log(ClipboardEvent.clipboardData.getData('Text'));
+					$.textPasteField.style.visibility="visible";
+					$.textPasteField.focus();
+					$.textPasteField.style.visibility="hidden";
+					
+					return;	
 			}
 			
 			return 0;

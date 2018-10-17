@@ -1,6 +1,6 @@
 const standardServerPort=8000;
 const startingRows=4;
-const useServer=true;
+const useServer=false;
 const EditorTheme="Test";
 const MaxRecursiveCalls=3;//the maximum recursive calls that can be done one the tryCut function
 
@@ -141,7 +141,7 @@ var Editor=function(){//Instance should be a div
 	var Instance = null;
 	
 	
-	var textPasteField = document.createElement("textarea");//document.getElementById("pasteField");
+	var textPasteField = this.textPasteField = document.createElement("textarea");//document.getElementById("pasteField");
 	textPasteField.id="pasteField";
 	
 	var rowNumberContainer = //defininf local variabesl like this prevents global declarations
@@ -506,6 +506,7 @@ var Editor=function(){//Instance should be a div
 		Editor_Instance.appendChild(this.rowNumberContainer);
 		Editor_Instance.appendChild(textContainer);
 		Editor_Instance.appendChild(this.localCursor.getElement());
+		Editor_Instance.appendChild(textPasteField);
 		for(var i=0;i<10;i++){
 			addRow();
 		}
