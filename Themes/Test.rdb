@@ -1,5 +1,7 @@
 {
 	"DefaultTextColor":"#cccccc",
+	
+	
 	"keywords":{
 	
 		"test":"#00FF00",
@@ -51,6 +53,11 @@
 		"+h":true,
 		"+":true,
 		";":true
+	},
+	
+	
+	"if_before":{
+		"function":"#d60270"
 	}
 	
 

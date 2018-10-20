@@ -132,7 +132,7 @@ module.exports = new function Session_Manager(){
 				var message=JSON.stringify(m);
 				for(var i=0;i<Users.length;i++) Users[i].send(m);
 			}
-			user.$CB.respond = function(m){
+			user.respond = user.$CB.respond = function(m){
 				var message=JSON.stringify(m);
 				user.send(message);
 			}

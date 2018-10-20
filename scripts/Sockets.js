@@ -40,7 +40,12 @@ function Network(){
 
 	var send =
 	this.send = function(Action,Node,Character){
+
 		var messageContext=new Object;
+		/*
+		 * Unique IDs are not enforced by server and because everyone currently 
+		 * uses the same id the system only supports two simultaneous users
+		 * */
 		messageContext.ID="TESTER";
 		messageContext.Action=Action;
 		//console.log(Action+" - "+Node);
@@ -48,46 +53,46 @@ function Network(){
 			var position=$.getAbsCursorPos($.localCursor);
 			messageContext.Row=position.Row;
 			messageContext.Col=position.Col;
-			//messageContext.textBlockIndex=Node.getIndex();
-			//messageContext.CursorPosition=$.localCursor.getCursorPos();
 			messageContext.Char=Character;
-			//console.log("ME: "+messageContext.absPos.Col);
 		}
 		
 		socket.send(JSON.stringify(messageContext));
 	}
 
+	/*
+	 * Client are never told to remove old cursors that are no longer availble
+	 * 
+	 * */
+
 	var processMessage =
 	this.processMessage =function(messageContext){
-		//for(x in $)console.log(x);
 		if($[messageContext.Action]!=undefined){
 
 			if(messageContext.Row!=undefined && messageContext.Row!=null){
-			//	console.log("hello "+messageContext.Row+" - "+messageContext.textBlockIndex);
-				//console.log(messageContext.test);
 				var row=$.textContainer.children[messageContext.Row];
-				var textBlock=row.children[messageContext.textBlockIndex];
-				//console.log(remoteCursor["LOCAL"]);
-				var cursor=$.acquireRemoteCursor(messageContext.ID);
-				//console.log("OTHER: "+messageContext.absPos.Col);
+				
+				
+				var cursor=$.acquireRemoteCursor(messageContext.ID);//Acquire a cursor for user either get current or create a new one
+				
 				$.setAbsCursorPos(messageContext.Row,messageContext.Col,cursor);//new code to set cursor position
-				//console.log("NOW: "+getAbsoluteCursorPos(cursor).Col);
+				
 				textBlock=cursor.getNode();//new code to set cursor position
 				
-				//console.log("Row "+textBlock.parentElement.getIndex()+ " index " + textBlock.getIndex())
-				//console.log(messageContext.ID);
-				cursor.setState("visible");
-				if(messageContext.Action=="OnAddChar")
-					$[messageContext.Action](textBlock,messageContext.Char,cursor);
-				else if(messageContext.Action=="OnPaste")
-					$[messageContext.Action](textBlock,messageContext.Char,cursor);
-				else if(messageContext.Action=="addNewTextBlock")
-					$[messageContext.Action](row,cursor);
-				else if(messageContext.Action=="OnClick")
-					var x;//window[messageContext.Action](textBlock,cursor,messageContext.CursorPosition);//old cursor positionning code use for debugging
-				else
-					$[messageContext.Action](textBlock,cursor);
-					
+				cursor.setState("visible")
+				switch(messageContext.Action){
+					case "OnAddChar" :
+						$[messageContext.Action](cursor.getNode(), messageContext.Char, cursor);
+						return;
+					case "OnPaste" ://Not functional right now may be a server problem
+						$[messageContext.Action](cursor.getNode(), messageContext.Char, cursor);
+						return;
+					case "addNewTextBlock" :
+						$[messageContext.Action](row, cursor);
+						return;
+					default:
+						$[messageContext.Action](cursor.getNode(), cursor);
+				}
+								
 			}
 			if(messageContext.Action=="OnFullSync"){
 				console.log("Syncing with server " + messageContext.Action);
@@ -98,5 +103,11 @@ function Network(){
 				console.log("ERROR: Event "+messageContext.Action+" not found");
 		}
 	}
+	
+	/*
+	 * Do nothing here, this is just to correct the position 
+	 * of the cursor when moving around with the arrow keys
+	 * */
+	this.OnServerCursorSync = function(){};
 
 }

@@ -1,6 +1,6 @@
 const standardServerPort=8000;
 const startingRows=4;
-const useServer=false;
+const useServer=true;
 const EditorTheme="Test";
 const MaxRecursiveCalls=3;//the maximum recursive calls that can be done one the tryCut function
 
@@ -91,7 +91,7 @@ var Cursor=function(){
 	}
 	
 	this.forEachOnNode = function(CB){
-		var node = this.getNode();
+		const node = this.getNode();
 		this.forEachOnRow(function(cursor,$this){
 			if(node == cursor.getNode()){
 				CB(cursor, $this);
@@ -108,18 +108,8 @@ var Cursor=function(){
 /*
  * LOADING/CREATING DOM ELEMENTS
  */
-var textField=document.getElementsByClassName("Editor_Instance")[0];
-var textField1=document.getElementsByClassName("Editor_Instance")[1];
-
-
-
-/*
- * 
- * 
- * Set of DOM elements that will acts as templates
- * 
- * 
- * */ 
+const Field=document.getElementsByClassName("Editor_Instance")[0];
+const Field1=document.getElementsByClassName("Editor_Instance")[1];
 
 	
 
@@ -136,35 +126,35 @@ var theme=new ThemeManager();
 
 
 
-var Editor=function(){//Instance should be a div
+var Interface=function(){//Instance should be a div
 	
-	var Instance = null;
+	let Instance = null;
 	
 	
-	var textPasteField = this.textPasteField = document.createElement("textarea");//document.getElementById("pasteField");
+	const textPasteField = this.textPasteField = document.createElement("textarea");//document.getElementById("pasteField");
 	textPasteField.id="pasteField";
 	
-	var rowNumberContainer = //defininf local variabesl like this prevents global declarations
+	const rowNumberContainer = //defininf local variabesl like this prevents global declarations
 	this.rowNumberContainer =document.createElement("div");
 	rowNumberContainer.setAttribute("id","Editor_Row-Number_Frame");
 	
-	var rowNumber =
+	const rowNumber =
 	this.rowNumber = document.createElement("span");
 		rowNumber.setAttribute("class","Editor_Row-Number");
 
-	var textRow =
+	const textRow =
 	this.textRow = document.createElement('div');
 		textRow.setAttribute("class","Editor_Text-Row");
 
 
 	
 	//textRow.appendChild(rowNumber);
-	var textBlock =
+	const textBlock =
 	this.textBlock = document.createElement('span');
 	textBlock.setAttribute("class","text_block");
 	textBlock.setAttribute("tabindex","-1");//allow the div to focused
 	
-	var textContainer =
+	const textContainer =
 	this.textContainer = document.createElement("div");
 	textContainer.setAttribute("id","Editor_Text-Frame");
 	
@@ -172,10 +162,10 @@ var Editor=function(){//Instance should be a div
 	this.useServer = useServer;	
 
 	var rowCount=0;
-	var localCursor = this.localCursor = new Cursor();
+	const localCursor = this.localCursor = new Cursor();
 	
 	//console.log("this "+localCursor);
-	var remoteCursor = this.remoteCursor = {};//setup a que of remote cursors
+	const remoteCursor = this.remoteCursor = {};//setup a que of remote cursors
 	remoteCursor["LOCAL"]=localCursor;//when running with server, each input will be routed through the server before being displayed
 	
 	localCursor.setGroup(remoteCursor);
@@ -183,13 +173,13 @@ var Editor=function(){//Instance should be a div
 	
 
 	
-	var addRow =
+	const addRow =
 	this.addRow = function (){
 		textContainer.appendChildTwice(textRow);
 		rowNumberContainer.appendChildTwice(rowNumber);
 	}
 
-	var insertRow =
+	const insertRow =
 	this.insertRow =function insertRow(node){
 		if(node.nextSibling!=null){
 			node.parentElement.insertBeforeTwice(textRow,node.nextSibling);
@@ -199,19 +189,20 @@ var Editor=function(){//Instance should be a div
 	}
 
 
-	var removeRow =
+	const removeRow =
 	this.removeRow = function removeRow(node){	
 		node.parentElement.removeChild(node);
 		rowNumberContainer.removeChild(rowNumberContainer.firstChild);
 	}
-	var removeAllRows =
+	
+	const removeAllRows =
 	this.removeAllRows = function(){	
 		while(textContainer.firstChild){
 			removeRow(textContainer.firstChild);
 		}
 	}
 	
-	var addNewTextBlock =
+	const addNewTextBlock =
 	this.addNewTextBlock = function(Row){
 		textBlock.innerHTML="";
 		Row.appendChildTwice(textBlock);
@@ -220,12 +211,12 @@ var Editor=function(){//Instance should be a div
 
 	}
 	
-	var editTextBlock =
+	const editTextBlock =
 	this.editTextBlock = function editTextBlock(node){//call this from the event layer to prevent another editor instance from being focused
 		if(localCursor.getNode()!=undefined)localCursor.getNode().focus();
 	}
 	
-	var mergeTextBlock =
+	const mergeTextBlock =
 	this.mergeTextBlock = function(Head,Tail){
 		if(Head!=null && Tail!=null){
 			Head.innerHTML=Head.innerHTML+Tail.innerHTML;
@@ -238,7 +229,7 @@ var Editor=function(){//Instance should be a div
 	
 	//console.log("tesintg")
 		
-	var ifCanMerge =
+	const ifCanMerge =
 	this.ifCanMerge = function (Head,Tail){
 		/*if(Head.innerHTML == "-f"){
 			console.log(Head.innerHTML.trim() +" "+((n = theme.ignoreSpace("-")) == 0 || (n > 0 && n != "-".length)));
@@ -287,7 +278,7 @@ var Editor=function(){//Instance should be a div
 
 	
 	
-	var closeEditBlock =
+	const closeEditBlock =
 	this.closeEditBlock = function (node){
 		if(node.value!=""){
 			textBlock.innerHTML=node.innerHTML.replace(/</g, "&lt;").replace(/>/g, "&gt;");;
@@ -301,7 +292,7 @@ var Editor=function(){//Instance should be a div
 	
 	
 
-	var splitEditBlock =
+	const splitEditBlock =
 	this.splitEditBlock = function (node,position){
 		var newstr=node.innerHTML.substring(position,node.innerHTML.length);//changes when implementing collaboration
 		
@@ -330,7 +321,7 @@ var Editor=function(){//Instance should be a div
 
 
 
-	var acquireRemoteCursor =
+	const acquireRemoteCursor =
 	this.acquireRemoteCursor = function (ID){
 		if(remoteCursor[ID]==undefined){
 			remoteCursor[ID]=new Cursor();
@@ -341,7 +332,7 @@ var Editor=function(){//Instance should be a div
 		return remoteCursor[ID];
 	}
 
-	var getAbsCursorPos =
+	const getAbsCursorPos =
 	this.getAbsCursorPos =function (Cursor){
 		var index=Cursor.getNode().getIndex();
 		var sum=0;
@@ -356,11 +347,11 @@ var Editor=function(){//Instance should be a div
 		};
 	}
 	
-	var setAbsCursorPos =
+	const setAbsCursorPos =
 	this.setAbsCursorPos = function (Row,Col,C){
 		var textBlock=textContainer.children[Row].children;
 		var sum=0;
-		for(var i=0;i<textBlock.length;i++){
+		for(let i=0;i<textBlock.length;i++){
 			//console.log(Col+" vs "+(sum+textBlock[i].innerHTML.length));
 			if(Col <= sum+textBlock[i].innerHTML.length){
 				C.setCursor(textBlock[i],Col-sum);
@@ -376,7 +367,7 @@ var Editor=function(){//Instance should be a div
 	
 	
 
-	var getDefaultEditorTextColor =
+	const getDefaultEditorTextColor =
 	this.getDefaultEditorTextColor = function (){
 		var color =theme.getDefaultTextColor();
 		if(color==undefined) return "#FFFFFF";
@@ -386,7 +377,7 @@ var Editor=function(){//Instance should be a div
 
 	
 
-	var setHighlight =
+	const setHighlight =
 	this.setHighlight = function (node){
 		var syntaxcolor=theme.getColorHighlight(node.innerHTML.trim());
 		if(syntaxcolor!=undefined){
@@ -398,7 +389,7 @@ var Editor=function(){//Instance should be a div
 	}
 
 
-	var RGBtoHex =
+	const RGBtoHex =
 	this.RGBtoHex = function (RGB) {
 		if (/^#[0-9A-F]{6}$/i.test(RGB)) return RGB;
 		RGB = RGB.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
@@ -410,7 +401,7 @@ var Editor=function(){//Instance should be a div
 
 
 
-	var tryCutBlock =
+	const tryCutBlock =
 	this.tryCutBlock = function (node,Cursor,recursionLevel){
 		var absPos = getAbsCursorPos(Cursor);//Keep this
 	
@@ -507,7 +498,7 @@ var Editor=function(){//Instance should be a div
 		Editor_Instance.appendChild(textContainer);
 		Editor_Instance.appendChild(this.localCursor.getElement());
 		Editor_Instance.appendChild(textPasteField);
-		for(var i=0;i<10;i++){
+		for(let i=0;i<10;i++){
 			addRow();
 		}
 	
@@ -559,10 +550,10 @@ function getTextWidth(node) {
 }*/
 
 
-function newEditor() {
+function Editor() {
 	
 
-	Controller.prototype = new Editor();
+	Controller.prototype = new Interface();
 	Controller.prototype.constructor = Controller;
 	if(useServer){
 		Network.prototype = new Controller();
@@ -585,17 +576,12 @@ window.onload=function(){
 	theme.loadTheme(EditorTheme);
 	
 	
+	var editor = new Editor();
+	editor.setup(Field,editor);
 	
 	
-	
-	
-	var editor = new newEditor();
-	editor.setup(textField,editor);
-	
-	//console.log("asa".test());
-	
-	var editor1 = new newEditor();
-	editor1.setup(textField1,editor1);
+	var editor1 = new Editor();
+	editor1.setup(Field1,editor1);
 	
 	
 	

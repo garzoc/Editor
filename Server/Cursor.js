@@ -85,6 +85,14 @@ module.exports = new function Cursor (ID){
 		this.getCursorSet=function (){
 			return Cursor.CursorSet;
 		}
+		
+		this.forEachOnRow = function(fun){
+			for(cursor in Cursor.CursorSet){
+				if(Cursor.CursorSet[cursor].getID() != ID && Cursor.CursorSet[cursor].getRow() == this.getRow()){
+						fun(Cursor.CursorSet[cursor]);
+				}
+			}
+		}
 	}else{
 		return null;
 	}

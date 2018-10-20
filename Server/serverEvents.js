@@ -1,5 +1,7 @@
-var pass="pass"
-var Git = require("git");
+const pass="pass"
+const Git = require("git");
+const printEvents = false;
+const printUnknownEvents = false;
 
 /*
  * http://stackoverflow.com/questions/5955891/has-anyone-implemented-a-git-clone-or-interface-library-using-nodejs
@@ -9,12 +11,12 @@ module.exports=new function(){
 	
 	
 	/*Git("data");
-	Git.init("garzoc");
-	Git.pull("https://github.com/garzoc/test.git","master");
+	Git.init("username");
+	Git.pull("https://github.com/username/test.git","master");
 	Git.commit("test");
 	/*http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github*/
 	
-	//Git.push("https://garzoc:"+pass+"@github.com/garzoc/test.git");
+	//Git.push("https://username:"+pass+"@github.com/username/test.git");
 
 	
 	var TEXT=["Hello World"];
@@ -35,67 +37,57 @@ module.exports=new function(){
 	
 	
 	this.passToEvents=function(messageContext,CB){
-				
 		if(messageContext.Action!=undefined && this[messageContext.Action]!=undefined){
+			addRow(messageContext.Row-TEXT.length);
+			if(printEvents)console.log(messageContext.Action);
 			this[messageContext.Action](messageContext,CB,CB.Cursor);
 		}else{
+			if(printUnknownEvents)console.log(messageContext.Action);
 			CB.forward(messageContext);
 		}
-		
-		/*for(var i=0;i<TEXT.length;i++){
-			console.log(TEXT[i]);
-		}*/
-		
-	
 	}
 	
 	
-	
-	
-	
-	this.OnTab=function(e,API,Cursor){
-		for(var i=0;TEXT.length<=e.Row;i++){
+	function addRow(times){
+		if(!times)times = 1;
+		for(let i = 0; i <times ; i++){
 			TEXT.push("");
 		}
+	}
+	
+	
+	this.OnTab=function(e,fn,Cursor){
 		TEXT[e.Row]=TEXT[e.Row].insert("\t",e.Col);
 		
-		var CursorSet=Cursor.getCursorSet();
-		for(c in CursorSet){
-			if(Cursor.getRow()==CursorSet[c].getRow() && Cursor.getIndex() <= CursorSet[c].getIndex()){
-				
-				CursorSet[c].setIndex(CursorSet[c].getIndex()+1);
+		Cursor.forEachOnRow(function(cursor){
+			if(Cursor.getIndex() <= cursor.getIndex()){
+				cursor.setIndex(cursor.getIndex()+1);
 			}
-		}
-		//Cursor.setIndex(Cursor.getIndex()+1);
 		
-		API.forward(e);
+		});
+		Cursor.setIndex(Cursor.getIndex()+1);
+		
+		fn.forward(e);
 		
 	}
 	
 	
-	this.OnSpace=function(e,API,Cursor){
-		for(var i=0;TEXT.length<=e.Row;i++){
-			TEXT.push("");
-		}
+	this.OnSpace=function(e,fn,Cursor){
 		TEXT[e.Row]=TEXT[e.Row].insert(" ",e.Col);
 		
-		var CursorSet=Cursor.getCursorSet();
-		for(c in CursorSet){
-			if(Cursor.getRow()==CursorSet[c].getRow() && Cursor.getIndex() <= CursorSet[c].getIndex()){
-				
-				CursorSet[c].setIndex(CursorSet[c].getIndex()+1);
+		Cursor.forEachOnRow(function(cursor){
+			if(Cursor.getIndex() <= cursor.getIndex()){
+				cursor.setIndex(cursor.getIndex()+1);
 			}
-		}
-		//Cursor.setIndex(Cursor.getIndex()+1);
+		
+		});
+		Cursor.setIndex(Cursor.getIndex()+1);
 		
 		
-		API.forward(e);
+		fn.forward(e);
 	}
 	
-	this.OnEnter=function(e,API,Cursor){
-		for(var i=0;TEXT.length<=e.Row;i++){
-			TEXT.push("");
-		}
+	this.OnEnter=function(e,fn,Cursor){
 		TEXT.splice(e.Row+1,0,"");
 		var string=TEXT[e.Row].substring(e.Col,TEXT[e.Row].length);
 		TEXT[e.Row]=TEXT[e.Row].substring(0,e.Col);
@@ -110,15 +102,13 @@ module.exports=new function(){
 		}
 		
 		
-		API.forward(e);
+		fn.forward(e);
 		//Cursor.setPos(Cursor.getRow(),Cursor.getPos()+1);
 	}
 	
-	this.OnBackSpace=function(e,API,Cursor){
+	this.OnBackSpace=function(e,fn,Cursor){
 		if(e.Row!=0)var length=TEXT[e.Row-1];
-		for(var i=0;TEXT.length<=e.Row;i++){
-			TEXT.push("");
-		}
+		
 		if(e.Col!=0){
 			TEXT[e.Row]=TEXT[e.Row].remove(e.Col-1,1);
 			var CursorSet=Cursor.getCursorSet();
@@ -144,25 +134,16 @@ module.exports=new function(){
 		
 		}
 		
-		
-		
-		
-		
-		API.forward(e);
+		fn.forward(e);
 	}
 	
 
-	this.OnAddChar=function(e,API,Cursor){
-		for(var i=0;TEXT.length<=e.Row;i++){
-			TEXT.push("");
-		}
-		//console.log(e.Char);
+	this.OnAddChar=function(e,fn,Cursor){
+		
 		TEXT[e.Row]=TEXT[e.Row].insert(e.Char,e.Col);
 		//var cursors=[Cursor];
 		var CursorSet=Cursor.getCursorSet();
-		for(c in CursorSet){
-			//console.log(c);
-			
+		for(c in CursorSet){			
 			if(Cursor.getRow()==CursorSet[c].getRow() && Cursor.getIndex() <= CursorSet[c].getIndex()){
 				
 				CursorSet[c].setIndex(CursorSet[c].getIndex()+1);
@@ -171,13 +152,11 @@ module.exports=new function(){
 		//Cursor.setIndex(Cursor.getIndex()+1);
 		
 	
-		API.forward(e);
+		fn.forward(e);
 	}
 	
-	this.OnPaste=function(e,API,Cursor){//ubsupported
-		for(var i=0;TEXT.length<=e.Row;i++){
-			TEXT.push("");
-		}
+	this.OnPaste=function(e,fn,Cursor){//ubsupported
+		
 		var x={};
 		x.Row=e.Row;
 		x.absPos=e.absPos;
@@ -197,29 +176,28 @@ module.exports=new function(){
 		}
 		//TEXT[e.Row]=TEXT[e.Row].insert(e.Char,e.absPos.Col);
 		
-		e.fun.forward(e);
+		fn.forward(e);
 	}
 	
-	this.OnFullSync=function(e,API){
+	this.OnFullSync=function(e,fn){
 		var messageContext={};
 		messageContext.Action="OnFullSync";
 		messageContext.Text=TEXT;
-		//console.log(messageContext);
-		API.respond(messageContext);
+		fn.respond(messageContext);
 	}
 	
 	
 	
-	this.OnRowSync=function(e,api){
+	this.OnRowSync=function(e,fn){
 		var messageContext={};
 		messageContext.Action="OnRowSync";
 		messageContext.Row=e.Row;
 		messageContext.Text=TEXT[e.Row];
-		e.fun.sendToAll(messageContext);
+		fn.sendToAll(messageContext);
 		
 	}
 	
-	this.OnSave=function(e,api){
+	this.OnSave=function(e,fn){
 		var fileContent=TEXT[0];
 		for(var i=1;i<TEXT.length;i++){
 			fileContent+="\n"+TEXT[i];
@@ -236,7 +214,7 @@ module.exports=new function(){
 		console.log("File Saved");
 	}
 	
-	this.OnLoad=function(e,api){
+	this.OnLoad=function(e,fn){
 		
 		var fs = require('fs');
 		fs.readFile("store/test.txt", function (err, data) {
@@ -257,7 +235,7 @@ module.exports=new function(){
 			}
 		}
 		
-		if(e!=undefined)OnFullSync(e);
+		if(e!=undefined)OnFullSync(e,fn);
 	}
 	
 

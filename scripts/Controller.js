@@ -14,10 +14,18 @@ function Controller(){
 	var remoteCursor = this.remoteCursor;
 	var $ = this;
 
-	 this.OnFullSync = function (DATA){
+	this.OnFullSync = function (DATA){
+		
+		let setFocus = false;
+		if(document.activeElement == $.localCursor.getNode()){
+				setFocus =true;
+		}
 
 		$.removeAllRows();
 		$.addRow();
+		$.textContainer
+		
+		
 		
 		var node = $.textContainer.firstChild;
 		var cursor = $.acquireRemoteCursor("SERVER");//the server has is usinge its own cursors to rewrite data to the editor
@@ -39,6 +47,10 @@ function Controller(){
 			$.OnEnter(node,cursor);
 		
 		}
+		if(setFocus){//To make sure the the editor didn't loose focus
+			cursor.getNode().focus()
+		}
+		
 	}
 
 

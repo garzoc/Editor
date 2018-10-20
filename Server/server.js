@@ -1,13 +1,13 @@
-var ws = require('ws').Server;
-var events = require("./serverEvents");
-var Cursor = require("./Cursor");
-var Sessions_Manager = require("./Session_Manager");
+const ws = require('ws').Server;
+const events = require("./serverEvents");
+const Cursor = require("./Cursor");
+const Sessions_Manager = require("./Session_Manager");
 var socketServer;
-var portfinder=require('portfinder');//https://github.com/indexzero/node-portfinder
+const portfinder=require('portfinder');//https://github.com/indexzero/node-portfinder
 portfinder.basePort=8000;
 
-console.log(Sessions_Manager.anySession());
-var session = Sessions_Manager.new("test");
+console.log(Sessions_Manager.anySession());//check if there are any session 
+const session = Sessions_Manager.new("test");//Just use one session for now will add support for joining different sessions, one session per file
 
 
 
@@ -20,7 +20,7 @@ var session = Sessions_Manager.new("test");
  
  
 function addCBtoUser(client){
-	client.$CB.sync_cursor=function(cursor){
+	client.sync_cursor=function(cursor){
 		var message={};
 		message.Action="OnSyncCursor";
 		message.absPos={Row:cursor.getRow(), Col:cursor.getIndex()};
@@ -30,7 +30,7 @@ function addCBtoUser(client){
 		client.send(JSON.stringify(message));
 	};
 			
-	client.$CB.reject=function(reason){
+	client.reject=function(reason){
 		var message={};
 		message.Action="OnConnectionRejected";
 		message.Reason=reason;
@@ -45,7 +45,7 @@ function addCBtoUser(client){
 
 portfinder.getPort(function (err, freePort) {
 	socketServer=new ws({port:freePort});
-	console.log("initiating server at "+freePort+"");
+	console.log("Initiating server at port "+freePort+"");
 	
 	//var a=Cursor.create("test");
 	//var b=Cursor.create("test");
@@ -54,9 +54,9 @@ portfinder.getPort(function (err, freePort) {
 	
 	socketServer.on('connection',function(client){
 		
-		//console.log("welcome");
 		
-		session.addUser(client,"NO_NAME");
+		
+		session.addUser(client,"NO_NAME");//Users should have a name
 		addCBtoUser(client);
 		
 	
@@ -64,49 +64,43 @@ portfinder.getPort(function (err, freePort) {
 		
 			var messageContext=JSON.parse(message.toString());
 			
-			
-			
-			
-			
+						
 			if(client.Cursor==undefined){
 				if((client.Cursor = Cursor.create((ID_COUNTER++)+""))==null){
-					messageContext.fun.reject("invalid ID");//if(null==client.Cursor=Cursor.create(messageContext.ID))client.fun.
+					client.reject("invalid ID");//if(null==client.Cursor=Cursor.create(messageContext.ID))client.fun.
 					return 0;
 				}
 			}
 			
-			var doSyncCursor=false;
-			if(messageContext.absPos!=undefined){
-				if(!client.Cursor.isset()|| events[messageContext.Action]==undefined){
-					//if position of the cursor has not yet been set then set the position
-					client.Cursor.setPos(messageContext.absPos.Row,messageContext.absPos.Col);
-				}else if(((messageContext.absPos.Col!=client.Cursor.getIndex() || messageContext.absPos.Row!=client.Cursor.getRow()))){
-					//console.log(messageContext.Action);
-					doSyncCursor=true;
-					console.log("this "+messageContext.Col+" vs "+client.Cursor.getIndex());
-					messageContext.absPos.Row=client.Cursor.getRow();
-					messageContext.absPos.Col=client.Cursor.getIndex();
+			
+			if(messageContext.Row != undefined && messageContext.Col != undefined){
+				if(!client.Cursor.isset() || events[messageContext.Action]==undefined){
+					//if position of the cursor has not yet been set then set the position or when the current actions is unknown				
+					client.Cursor.setPos(messageContext.Row,messageContext.Col);
+				}else if(messageContext.Col != client.Cursor.getIndex() || messageContext.Row != client.Cursor.getRow()){//Sync contoller
+					console.log("Users out of sync");
+					events.OnFullSync(messageContext,client.$CB);//Do a complete reload of the users text to match every one else's
+					
 					messageContext.Row=client.Cursor.getRow();
 					messageContext.Col=client.Cursor.getIndex();
+					
+					let ID = messageContext.ID;
+					messageContext.ID = "LOCAL";//Client won't recognize it own ID, and will only think it someone else, unique online IDs are not enforced yet
+					
+					client.respond(messageContext);//Transmit new instruciton back to user
+					messageContext.ID = ID;
 					
 				}
 			}
 			
-			this.$CB.Cursor=client.Cursor;
-			
+			this.$CB.Cursor=this.Cursor;//??
 			events.passToEvents(messageContext,this.$CB);	
 			
-			
-			if(doSyncCursor){
-				events.OnFullSync(null,messageContext.fun);
-				messageContext.fun.sync_cursor(client.Cursor);
-				
-			}	
 		});
 
 		client.on('close',function close(){
 			if(this.Cursor!=undefined)this.Cursor.unregister();
-			session.removeUser(client);
+			session.removeUser(this);
 	
 		});
 	

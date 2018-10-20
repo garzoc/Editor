@@ -142,6 +142,23 @@ var Event = function bindEvents(){
 			return 0;
 		}
 		
+		if(e.keyCode==8){//backspace
+			e.preventDefault();
+			if($.useServer)$.send("OnBackSpace",node,null);	
+			$.OnBackSpace(node, $.localCursor);
+			$.editTextBlock($.localCursor.getNode());		
+			return 0;
+		} 
+		
+		
+		if(e.keyCode===13){//ENTER
+			e.preventDefault();
+			if($.useServer)$.send("OnEnter",node,null);
+			$.OnEnter(e.target, $.localCursor);
+			$.editTextBlock($.localCursor.getNode());
+			return 0;
+			
+		}
 		
 		if(e.keyCode===39){//right arrow key
 			e.preventDefault();
@@ -150,14 +167,6 @@ var Event = function bindEvents(){
 			$.editTextBlock($.localCursor.getNode());
 			if($.useServer)$.send("OnServerCursorSync",node,null);//when using arrow keys send a second message to the serer in order to sync
 			
-			return 0;
-		} 	
-		
-		if(e.keyCode==8){//backspace
-			e.preventDefault();
-			if($.useServer)$.send("OnBackSpace",node,null);	
-			$.OnBackSpace(node, $.localCursor);
-			$.editTextBlock($.localCursor.getNode());		
 			return 0;
 		} 
 		
@@ -168,15 +177,6 @@ var Event = function bindEvents(){
 			$.editTextBlock($.localCursor.getNode());
 			if($.useServer)$.send("OnServerCursorSync",node,null);
 			return 0;
-		}
-		
-		if(e.keyCode===13){//ENTER
-			e.preventDefault();
-			if($.useServer)$.send("OnEnter",node,null);
-			$.OnEnter(e.target, $.localCursor);
-			$.editTextBlock($.localCursor.getNode());
-			return 0;
-			
 		}
 		
 		if(e.keyCode===40 && e.target.parentElement.nextSibling!==null){//down arrow key

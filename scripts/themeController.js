@@ -62,7 +62,7 @@ var ThemeManager=function(){
 	
 	this.keyWordSpace = function(string){//strings object shoudl not be present in the keywords list
 		if(string == undefined) return 0;
-		//console.log(string);
+
 		var currentDepth = ThemeContext.keywordTree.root;
 		var i = 0;
 		
@@ -77,12 +77,10 @@ var ThemeManager=function(){
 		
 		
 		if(this.isKeyword(string.substring(0,i)) != undefined){
-				// console.log(i);
 				return  i;
 		}
 		
 		if(keyWordFound){
-			//console.log(keyWordFound);
 			return keyWordFound;
 		}
 		
@@ -95,7 +93,6 @@ var ThemeManager=function(){
 		var currentDepth = ThemeContext.ignoreTree.root;
 		var i = 0;
 		
-		//console.log(string);
 		while(currentDepth[string.charAt(i)] != undefined && i < string.length){
 	
 			
@@ -103,20 +100,13 @@ var ThemeManager=function(){
 		}
 		
 		if(ThemeContext.ignore[string.substring(0,i)] == true){
-				//console.log("njet "+string)
 				return  i;
 		}
 	
-		
-		
-		//console.log("Stringed "+ string);
 		return this.ifIgnoreChar(string.charAt(0)) ? 1 :0;
-
-		
 	}
 	
 	this.ifIgnoreChar=function(char){
-		
 		return ThemeContext.ignore[char.trim()]==true;
 	}
 	
@@ -128,5 +118,7 @@ var ThemeManager=function(){
 	this.getDefaultTextColor=function(){
 		return ThemeContext["DefaultTextColor"];
 	};
+	
+
 
 }
