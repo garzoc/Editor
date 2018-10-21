@@ -2,7 +2,8 @@ const pass="pass"
 const Git = require("git");
 const printEvents = false;
 const printUnknownEvents = false;
-
+const filePath = "../data/"
+const filename = "test.txt"
 /*
  * http://stackoverflow.com/questions/5955891/has-anyone-implemented-a-git-clone-or-interface-library-using-nodejs
  * */
@@ -203,9 +204,14 @@ module.exports=new function(){
 			fileContent+="\n"+TEXT[i];
 		
 		}
-
+		
 		var fs = require('fs');
-		fs.writeFile("store/test.txt", fileContent, function(err) {
+		
+		if(fs.existsSync(filePath+filename)){
+			
+		}
+		
+		fs.writeFileSync(filePath+filename, fileContent, function(err) {
 			if(err) {
 				return console.log(err);
 			}
@@ -217,7 +223,7 @@ module.exports=new function(){
 	this.OnLoad=function(e,fn){
 		
 		var fs = require('fs');
-		fs.readFile("store/test.txt", function (err, data) {
+		fs.readFile(filePath+filename, function (err, data) {
 			if (err) {
 				throw err; 
 			}

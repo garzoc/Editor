@@ -107,8 +107,8 @@ var Event = function bindEvents(){
 				case 's':
 					e.preventDefault();
 					if($.useServer)$.send("OnSave");
-					console.log('ctrl-s');
-					returnhhhdsj;
+					//console.log('ctrl-s');
+					return;
 					
 				case 'c':
 					
