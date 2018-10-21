@@ -6,7 +6,7 @@ var socketServer;
 const portfinder=require('portfinder');//https://github.com/indexzero/node-portfinder
 portfinder.basePort=8000;
 
-console.log(Sessions_Manager.anySession());//check if there are any session 
+//console.log(Sessions_Manager.anySession());//check if there are any session 
 const session = Sessions_Manager.new("test");//Just use one session for now will add support for joining different sessions, one session per file
 
 
@@ -66,10 +66,14 @@ portfinder.getPort(function (err, freePort) {
 			
 						
 			if(client.Cursor==undefined){
-				if((client.Cursor = Cursor.create((ID_COUNTER++)+""))==null){
+				if((client.Cursor = Cursor.create((messageContext.ID)+""))==null){
 					client.reject("invalid ID");//if(null==client.Cursor=Cursor.create(messageContext.ID))client.fun.
 					return 0;
 				}
+			}
+			
+			if(this.Cursor.getID() != messageContext.ID){
+				client.reject("ID mismatch");
 			}
 			
 			

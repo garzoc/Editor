@@ -1,11 +1,13 @@
 
 
 function Network(){
-	var socket=null;
-	var $ = this;
+	let socket=null;
+	let $ = this;
+	
+	
 	this.initSocket = function(){
 		socket=new WebSocket("ws://127.0.0.1:8000/IDE");
-		
+
 		//socket=new WebSocket("ws://192.168.1.20:8000/IDE");
 		socket.onopen=function(e){
 			console.log("Established contact with server");
@@ -42,11 +44,11 @@ function Network(){
 	this.send = function(Action,Node,Character){
 
 		var messageContext=new Object;
-		/*
-		 * Unique IDs are not enforced by server and because everyone currently 
-		 * uses the same id the system only supports two simultaneous users
-		 * */
-		messageContext.ID="TESTER";
+		
+		messageContext.ID=$.getID();//"TESTER";
+		
+		
+		
 		messageContext.Action=Action;
 		//console.log(Action+" - "+Node);
 		if(Node!=null){ 
@@ -67,15 +69,13 @@ function Network(){
 	var processMessage =
 	this.processMessage =function(messageContext){
 		if($[messageContext.Action]!=undefined){
-
 			if(messageContext.Row!=undefined && messageContext.Row!=null){
 				var row=$.textContainer.children[messageContext.Row];
-				
-				
+								
 				var cursor=$.acquireRemoteCursor(messageContext.ID);//Acquire a cursor for user either get current or create a new one
 				
 				$.setAbsCursorPos(messageContext.Row,messageContext.Col,cursor);//new code to set cursor position
-				
+				$.setAbsCursorPos(messageContext.Row,messageContext.Col,cursor);
 				textBlock=cursor.getNode();//new code to set cursor position
 				
 				cursor.setState("visible")
@@ -89,15 +89,27 @@ function Network(){
 					case "addNewTextBlock" :
 						$[messageContext.Action](row, cursor);
 						return;
+					case "OnClick":
+						return;
 					default:
 						$[messageContext.Action](cursor.getNode(), cursor);
+						return;
 				}
-								
+				
 			}
-			if(messageContext.Action=="OnFullSync"){
-				console.log("Syncing with server " + messageContext.Action);
-				$[messageContext.Action](messageContext.Text);
+			
+			switch(messageContext.Action){
+				case "OnFullSync":
+					console.log("Syncing with server " + messageContext.Action);
+					$[messageContext.Action](messageContext.Text);
+					return;
+				case "OnConnectionRejected":
+					$[messageContext.Action](messageContext.Reason);
+					return;
+				default :
+					$[messageContext.Action](messageContext);
 			}
+			
 
 		}else{
 				console.log("ERROR: Event "+messageContext.Action+" not found");
@@ -109,5 +121,8 @@ function Network(){
 	 * of the cursor when moving around with the arrow keys
 	 * */
 	this.OnServerCursorSync = function(){};
+	this.OnConnectionRejected = function(reason){
+		console.log("User was kicked due to "+reason);
+	};
 
 }

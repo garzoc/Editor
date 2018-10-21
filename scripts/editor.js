@@ -130,6 +130,17 @@ var Interface=function(){//Instance should be a div
 	
 	let Instance = null;
 	
+	let instanceID ="BLANK";
+	
+	this.setID = function(ID){
+		if(typeof ID == "string"){
+			instanceID = ID;
+		}
+	}
+	
+	this.getID = function(){
+		return	instanceID;
+	}
 	
 	const textPasteField = this.textPasteField = document.createElement("textarea");//document.getElementById("pasteField");
 	textPasteField.id="pasteField";
@@ -504,7 +515,7 @@ var Interface=function(){//Instance should be a div
 	
 		localCursor.setCursor(this.addNewTextBlock(textContainer.children[0],localCursor),0);
 	
-	
+
 		if(useServer)EditorStack.initSocket();//only time where a higher level has to call a lower level call
 	
 		
@@ -552,7 +563,6 @@ function getTextWidth(node) {
 
 function Editor() {
 	
-
 	Controller.prototype = new Interface();
 	Controller.prototype.constructor = Controller;
 	if(useServer){
@@ -563,8 +573,9 @@ function Editor() {
 		Event.prototype = new Controller();
 	}
 	Event.prototype.constructor = Event;
-
+	
 	return new Event();
+
 }
 
 
@@ -577,10 +588,12 @@ window.onload=function(){
 	
 	
 	var editor = new Editor();
+	editor.setID("editor1");
 	editor.setup(Field,editor);
 	
 	
 	var editor1 = new Editor();
+	editor1.setID("editor2");
 	editor1.setup(Field1,editor1);
 	
 	

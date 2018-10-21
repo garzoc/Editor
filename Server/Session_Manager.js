@@ -111,12 +111,12 @@ module.exports = new function Session_Manager(){
 		}
 		
 		this.removeUserAt = function(index){
-				for(var i = index + 1; i < Users.length; i++){
-					Users[i].user_info.user_index--;
-				}
-				Users[index].user_info = undefined;
-				Users[index].Session_info = undefined;
-				Users.splice(index,1);		
+			for(var i = index + 1; i < Users.length; i++){
+				Users[i].user_info.user_index--;
+			}
+			Users[index].user_info = undefined;
+			Users[index].Session_info = undefined;
+			Users.splice(index,1);		
 		}
 		
 		

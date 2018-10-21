@@ -38,7 +38,7 @@ var ThemeManager=function(){
 				var n = 0;
 				var currentDepth = root;
 				while(++n < list.length){
-					currentDepth[list[n-1]]={}
+					if(currentDepth[list[n-1]] == undefined)currentDepth[list[n-1]]={}; // Just added the if statement 
 					currentDepth = currentDepth[list[n-1]];
 					
 				}

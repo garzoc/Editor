@@ -2,7 +2,7 @@
 var Event = function bindEvents(){
 	
 	var $ = this;
-	
+	this.sada="asd";
 	//MOUSE EVENTS
 	
 	$.textRow.bindEventListener("click",function(e){
