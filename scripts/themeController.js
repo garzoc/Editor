@@ -60,7 +60,7 @@ var ThemeManager=function(){
 		return ThemeContext.ignore[keyword.trim()]!=undefined;
 	}
 	
-	this.keyWordSpace = function(string){//strings object shoudl not be present in the keywords list
+	this.keyWordSpace = function(string){//strings object should not be present in the keywords list
 		if(string == undefined) return 0;
 
 		var currentDepth = ThemeContext.keywordTree.root;
