@@ -1,9 +1,7 @@
-const standardServerPort=8000;
-const startingRows=4;
-const useServer=true;
-const EditorTheme="Test";
-const MaxRecursiveCalls=3;//the maximum recursive calls that can be done one the tryCut function
-
+const standardServerPort = 8000;
+const startingRows       = 10;
+const useServer          = true;
+const EditorTheme        = "Test";
 
 
 var cursorCounter=0;
@@ -12,16 +10,16 @@ var Cursor=function(){
 	var cursor=document.createElement('div');
 	cursor.setAttribute("class","cursor");
 	var currentNode;
-	
+
 	var cursorGroup; //group of cursor used for for each
-	
+
 	var positionInTextBlock=0;
-	
-	this.setCursor=function setCursor(node,textPosition, no_delete){
+
+	this.setCursor=function setCursor(node, textPosition, no_delete){
 		cursor.style.top=node.offsetTop+"px";
 		if(currentNode!=undefined && currentNode.parentElement!=null && currentNode.getIndex()!=node.getIndex() && currentNode.innerHTML=="" && !no_delete)currentNode.parentElement.removeChild(currentNode);
 		currentNode=node;
-		
+
 		if(textPosition===-1){
 			cursor.style.left=(node.offsetLeft+node.scrollWidth)+"px"
 			positionInTextBlock=node.innerHTML.length;
@@ -31,50 +29,55 @@ var Cursor=function(){
 			positionInTextBlock=textPosition;
 		}
 	};
+
 	this.getNode=function(){//return the current block of text which is being edited
 		return currentNode;
 	}
+
 	this.getID=function(){
 		return cursorID;
 	}
+
 	this.getCursorPos=function(){return positionInTextBlock;};
-	
-	this.getRow=function(){//add method for getting the prev & next row
+
+	this.getRow = function(){//add method for getting the prev & next row
+		//TODO correcto this
 		return this.getNode().parentElement.getIndex();
 	}
-	
+
 	this.getRowElem = function(){
 		return this.getNode().parentElement;
 	}
-	
+
 	this.getNext = function(){
 		return this.getNode().nextSibling;
 	}
-	
+
 	this.getPrev = function(){
 			return this.getNode().previousSibling;
 	}
-	
+
 	this.getLastFromPrevRow = function (){
 		return this.getRowElem().previousSibling.lastChild;
 	}
-	
+
 	this.getLastFromNextRow = function (){
 		return this.getRowElem().nextSibling.lastChild;
 	}
-	
+
 	this.setState=function(visibility){cursor.style.visibility=visibility;}
-	
+
 	this.getElement=function(){return cursor;};
-	
-	
+
+
 	this.setGroup = function(group){
 		cursorGroup = group;
 	}
-	
+
 	this.forEachOnRow = function(CB){
 		this.forEach(function(cursor,$this){
-			if($this.getRowElem() != null && cursor.getRowElem() != null && $this.getID()!= cursor.getID() && $this.getRow() == cursor.getRow()){
+			if(cursor.getNode() && $this.getRowElem() != null && cursor.getRowElem() != null &&
+			   $this.getID()!= cursor.getID() && $this.getRow() == cursor.getRow()){
 				CB(cursorGroup[c],$this);
 			}
 		});
@@ -87,9 +90,9 @@ var Cursor=function(){
 		}else{
 			console.log("Missing cursor group");
 		}
-	
+
 	}
-	
+
 	this.forEachOnNode = function(CB){
 		const node = this.getNode();
 		this.forEachOnRow(function(cursor,$this){
@@ -97,10 +100,8 @@ var Cursor=function(){
 				CB(cursor, $this);
 			}
 		});
-	
+
 	}
-	
-	
 }
 
 
@@ -111,12 +112,7 @@ var Cursor=function(){
 const Field=document.getElementsByClassName("Editor_Instance")[0];
 const Field1=document.getElementsByClassName("Editor_Instance")[1];
 
-	
-
-
 //http://stackoverflow.com/questions/3656467/is-it-possible-to-focus-on-a-div-using-javascript-focus-function#3656524
-
-
 
 var theme=new ThemeManager();
 
@@ -125,30 +121,30 @@ var theme=new ThemeManager();
  */
 
 
-
 var Interface=function(){//Instance should be a div
-	
-	let Instance = null;
-	
-	let instanceID ="BLANK";
-	
+
+	let Instance       = null;
+	let instanceID     ="BLANK";
+	let firstRowNumber = this.firstRowNumber = 0;
+
+
 	this.setID = function(ID){
 		if(typeof ID == "string"){
 			instanceID = ID;
 		}
 	}
-	
+
 	this.getID = function(){
 		return	instanceID;
 	}
-	
+
 	const textPasteField = this.textPasteField = document.createElement("textarea");//document.getElementById("pasteField");
 	textPasteField.id="pasteField";
-	
+
 	const rowNumberContainer = //defininf local variabesl like this prevents global declarations
 	this.rowNumberContainer =document.createElement("div");
 	rowNumberContainer.setAttribute("id","Editor_Row-Number_Frame");
-	
+
 	const rowNumber =
 	this.rowNumber = document.createElement("span");
 		rowNumber.setAttribute("class","Editor_Row-Number");
@@ -158,32 +154,54 @@ var Interface=function(){//Instance should be a div
 		textRow.setAttribute("class","Editor_Text-Row");
 
 
-	
+
 	//textRow.appendChild(rowNumber);
 	const textBlock =
 	this.textBlock = document.createElement('span');
 	textBlock.setAttribute("class","text_block");
 	textBlock.setAttribute("tabindex","-1");//allow the div to focused
-	
+
 	const textContainer =
 	this.textContainer = document.createElement("div");
 	textContainer.setAttribute("id","Editor_Text-Frame");
-	
-	
-	this.useServer = useServer;	
+
+
+	this.useServer = useServer;
 
 	var rowCount=0;
 	const localCursor = this.localCursor = new Cursor();
-	
-	//console.log("this "+localCursor);
+
 	const remoteCursor = this.remoteCursor = {};//setup a que of remote cursors
 	remoteCursor["LOCAL"]=localCursor;//when running with server, each input will be routed through the server before being displayed
-	
 	localCursor.setGroup(remoteCursor);
-	
-	
 
-	
+
+	const getRowNumber = this.getRowNumber= function(row) {
+		return firstRowNumber + row.getIndex();
+	}
+
+	const rowIsAbove = this.rowIsAbove = function(row){
+		return row < firstRowNumber;
+	}
+
+	const rowIsVisible = this.rowIsVisible = function(rowNumber){
+		return rowNumber >= firstRowNumber &&
+			   textContainer.children[rowNumber - firstRowNumber];
+	}
+
+	const getRowByIndex = this.getRowByIndex = function(rowNumber) {
+		return textContainer.children[rowNumber - firstRowNumber];
+	}
+
+	const updateRowNumber = this.updateRowNumber = function(offset) {
+		if(firstRowNumber != 0 || offset >= 0) {
+			firstRowNumber += offset;
+			Instance.style.counterReset="section " + firstRowNumber;
+			return true;
+		}
+		return false;
+	}
+
 	const addRow =
 	this.addRow = function (){
 		textContainer.appendChildTwice(textRow);
@@ -191,42 +209,59 @@ var Interface=function(){//Instance should be a div
 	}
 
 	const insertRow =
-	this.insertRow =function insertRow(node){
-		if(node.nextSibling!=null){
-			node.parentElement.insertBeforeTwice(textRow,node.nextSibling);
+	this.insertRow =function insertRow(row){
+
+		if(row.nextSibling != null){
+			row.parentElement.insertBeforeTwice(textRow, row.nextSibling);
 			rowNumberContainer.appendChildTwice(rowNumber);
-		}else
+			return true;
+		}else {
 			addRow();
+			return false; //TODO maybe change the return types
+		}
+	}
+
+
+	const insertBeforeRow =
+	this.insertBeforeRow  = function insertBeforeRow(row){
+		row.parentElement.insertBeforeTwice(textRow, row);
+		rowNumberContainer.appendChildTwice(rowNumber);
 	}
 
 
 	const removeRow =
-	this.removeRow = function removeRow(node){	
-		node.parentElement.removeChild(node);
+	this.removeRow = function removeRow(row){
+		row.parentElement.removeChild(row);
 		rowNumberContainer.removeChild(rowNumberContainer.firstChild);
 	}
-	
+
 	const removeAllRows =
-	this.removeAllRows = function(){	
+	this.removeAllRows = function(){
 		while(textContainer.firstChild){
 			removeRow(textContainer.firstChild);
 		}
 	}
-	
+
+	const removeAllText =  this.removeAllText =function(row){
+		while(row.firstChild){
+			row.removeChild(row.firstChild);
+		}
+	}
+
 	const addNewTextBlock =
 	this.addNewTextBlock = function(Row){
 		textBlock.innerHTML="";
 		Row.appendChildTwice(textBlock);
 		return Row.lastChild;
-		
+
 
 	}
-	
+
 	const editTextBlock =
 	this.editTextBlock = function editTextBlock(node){//call this from the event layer to prevent another editor instance from being focused
 		if(localCursor.getNode()!=undefined)localCursor.getNode().focus();
 	}
-	
+
 	const mergeTextBlock =
 	this.mergeTextBlock = function(Head,Tail){
 		if(Head!=null && Tail!=null){
@@ -237,58 +272,57 @@ var Interface=function(){//Instance should be a div
 		}
 		return null;
 	}
-	
+
 	//console.log("tesintg")
-		
+
 	const ifCanMerge =
 	this.ifCanMerge = function (Head,Tail){
 		/*if(Head.innerHTML == "-f"){
 			console.log(Head.innerHTML.trim() +" "+((n = theme.ignoreSpace("-")) == 0 || (n > 0 && n != "-".length)));
 		}*/
-		
-		
+
+
 		var nextNode = Tail.nextSibling;
 		var prevNode = Head.prevSibling;
-		
+
 		Head = Head.innerHTML;
 		Tail = Tail.innerHTML;
-		
-		
+
+
 		if(Head.trim() == "" || Tail.trim()==""){
 			return true;
 		}
-		
-		
+
+
 		if(theme.ignoreSpace(Head) < theme.ignoreSpace(Head + Tail)){
 			//console.log("merge check 1:");
 			return true;
 		}
-		
+
 		var n = 0;
-		
+
 		//console.log(Head+" "+Tail);
 		//if(!theme.isIgnored(Head+Tail) || prevNode.innerHTML.slice(-1).isWhiteSpace() &&( nextNode != null ? nextNode.innerHTML.charAt(0).isWhiteSpace():true))
-		
-	
-		
+
+
+
 		if(theme.ignoreSpace(Head.trim()) ==  Head.trim().length && theme.ignoreSpace(Tail.trim()) ==  Tail.trim().length  && theme.isKeyword(Head+Tail)){
 			//console.log("merge check 2:");
 				return true;
 		}
-		
-		
+
+
 		if(Tail!=null && ((!Head.charAt(Head.length-1).isWhiteSpace() && !Tail.charAt(0).isWhiteSpace() && ((n = theme.ignoreSpace(Head.trim())) == 0 || (n > 0 && n != Head.trim().length)) && ((n = theme.ignoreSpace(Tail.trim())) == 0 || n!= Tail.trim().length)) || (!theme.isKeyword(Tail) && !theme.isKeyword(Head)))){
 			//console.log("merge check 3:");
 			//console.log(Head.trim() + " & "+Tail.trim());
 			return true;
 		}
 		return false;
-		
-		
+
+
 	}
 
-	
-	
+
 	const closeEditBlock =
 	this.closeEditBlock = function (node){
 		if(node.value!=""){
@@ -299,37 +333,31 @@ var Interface=function(){//Instance should be a div
 			node.parentElement.removeChild(node);
 		}
 	}
-	
-	
-	
+
 
 	const splitEditBlock =
 	this.splitEditBlock = function (node,position){
 		var newstr=node.innerHTML.substring(position,node.innerHTML.length);//changes when implementing collaboration
-		
+
 		node.innerHTML=node.innerHTML.substring(0,position);
 		textBlock.innerHTML=newstr;
 		var nextNode;
-		
+
 		if(node.nextSibling!==undefined&&node.nextSibling!==null){
-			
+
 			node.parentElement.insertBeforeTwice(textBlock,node.nextSibling);
 			nextNode=node.nextSibling;
 		}else{
 			node.parentElement.appendChildTwice(textBlock);
 			nextNode=node.parentElement.lastChild;
-			
-			
+
+
 		}
 		setHighlight(node);
 		setHighlight(nextNode);
 		return nextNode;
 
 	}
-	
-	
-	
-
 
 
 	const acquireRemoteCursor =
@@ -339,44 +367,50 @@ var Interface=function(){//Instance should be a div
 			Instance.appendChild(remoteCursor[ID].getElement());
 			remoteCursor[ID].setGroup(remoteCursor);
 		}
-			
+
 		return remoteCursor[ID];
 	}
 
 	const getAbsCursorPos =
 	this.getAbsCursorPos =function (Cursor){
-		var index=Cursor.getNode().getIndex();
+		var index = Cursor.getNode().getIndex();
 		var sum=0;
-		for(var i=0;i<index;i++){
-			sum+=Cursor.getNode().parentElement.children[i].innerHTML.length;
+		for(var i = 0; i < index; i++){
+			sum+=Cursor.getRowElem().children[i].innerHTML.length;
 		}
-		sum+=Cursor.getCursorPos();
+		sum += Cursor.getCursorPos();
 		return{
-			Row:Cursor.getNode().parentElement.getIndex(),
+			Row:getRowNumber(Cursor.getRowElem()),
 			Col:sum
-		
+
 		};
 	}
-	
+
 	const setAbsCursorPos =
-	this.setAbsCursorPos = function (Row,Col,C){
-		var textBlock=textContainer.children[Row].children;
-		var sum=0;
-		for(let i=0;i<textBlock.length;i++){
+	this.setAbsCursorPos = function (Row, Col, C){
+		let row = textContainer.children[Row - firstRowNumber];
+
+
+		let textBlocks = row.children;
+		let sum=0;
+
+		if(textBlocks.length == 0) { // If the row is empty add new textBlock
+			this.addNewTextBlock(row);
+		}
+
+		for(let i = 0; i < textBlocks.length; i++){
 			//console.log(Col+" vs "+(sum+textBlock[i].innerHTML.length));
-			if(Col <= sum+textBlock[i].innerHTML.length){
-				C.setCursor(textBlock[i],Col-sum);
+			if(Col <= sum + textBlocks[i].innerHTML.length){
+				C.setCursor(textBlocks[i], Col - sum);
 				return true;
 			}else{
-				sum+=textBlock[i].innerHTML.length;
+				sum += textBlocks[i].innerHTML.length;
 			}
 		}
+		throw "failed to set pos";
 		console.log("failed to set pos");
 		return false;
 	}
-	
-	
-	
 
 	const getDefaultEditorTextColor =
 	this.getDefaultEditorTextColor = function (){
@@ -385,8 +419,6 @@ var Interface=function(){//Instance should be a div
 		return color;
 
 	}
-
-	
 
 	const setHighlight =
 	this.setHighlight = function (node){
@@ -399,7 +431,6 @@ var Interface=function(){//Instance should be a div
 
 	}
 
-
 	const RGBtoHex =
 	this.RGBtoHex = function (RGB) {
 		if (/^#[0-9A-F]{6}$/i.test(RGB)) return RGB;
@@ -411,17 +442,15 @@ var Interface=function(){//Instance should be a div
 	}
 
 
-
 	const tryCutBlock =
-	this.tryCutBlock = function (node,Cursor,recursionLevel){
+	this.tryCutBlock = function (node, Cursor) {
 		var absPos = getAbsCursorPos(Cursor);//Keep this
-	
-		var words=node.innerHTML.getWords();
-		//console.log(words);
+		var words= node.innerHTML.getWords();
+
 		var offset = 0;
 		words.forEach(function(word){
-			//console.log(word.string + " "+ theme.isKeyword(word.string) + " "+ !theme.isKeyword(node.innerHTML));
-			//console.log(word.string);
+
+			// If the word is a subset of a larger keyword do not split it
 			if(theme.isKeyword(word.string) && !theme.isKeyword(node.innerHTML)){
 				//console.log(word.string)
 				if(word.start!=0){
@@ -429,28 +458,26 @@ var Interface=function(){//Instance should be a div
 					offset += word.start - offset;
 				}
 				setAbsCursorPos(absPos.Row,absPos.Col,Cursor);
-				
-				if(theme.isKeyword(word.string) && !theme.isKeyword(Cursor.getNode().innerHTML) && (word.end - offset) != node.innerHTML.length){
+
+				if(theme.isKeyword(word.string) && !theme.isKeyword(Cursor.getNode().innerHTML) &&
+				  (word.end - offset) != node.innerHTML.length){
 					node=splitEditBlock(node,word.end -offset);
 					offset +=word.end -offset ;
 				}
-				
+
 				Cursor.forEachOnNode(function(cursor){
 					if(cursor.getCursorPos >= word.end){
 						cursor.setCursorPos(node,cursor.getNode.innerHTML.length);
 					}
 				});
-				
+
 				setAbsCursorPos(absPos.Row,absPos.Col,Cursor);
-				
-				if(recursionLevel!=0)tryCutBlock (node,Cursor,0);
 
 			}
-		
+
 		});
 		var merged = false;
-		var once;
-		once = false;
+
 		do{
 			merged = false;
 			cursorPos=Cursor.getCursorPos();
@@ -460,78 +487,60 @@ var Interface=function(){//Instance should be a div
 					if(cursor.getNode().getIndex() - 1 == Cursor.getNode().getIndex()){
 						cursor.setCursor(cursor.getPrev(),cursor.getPrev().innerHTML.length + cursor.getCursorPos());
 					}
-				});			
+				});
 				node=mergeTextBlock(Cursor.getNode(),Cursor.getNext());
-				
+
 				Cursor.forEachOnRow(function(cursor){
 						cursor.setCursor(cursor.getNode(), cursor.getCursorPos());
 				});
 				Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
 				merged = true;
 			}
-			
+
 			if(Cursor.getNode().previousSibling!=null && ifCanMerge(Cursor.getNode().previousSibling,Cursor.getNode())){//merge
 				//console.log("merge2");
-				
+
 				Cursor.forEachOnNode(function(cursor){
 						cursor.setCursor(cursor.getPrev(), cursor.getPrev().innerHTML.length + cursor.getCursorPos());
 				});
 				Cursor.setCursor(Cursor.getPrev(), Cursor.getPrev().innerHTML.length + Cursor.getCursorPos());
-				
+
 				node=mergeTextBlock(Cursor.getNode(),Cursor.getNext());
-				
+
 				Cursor.forEachOnRow(function(cursor){
 						cursor.setCursor(cursor.getNode(), cursor.getCursorPos());
 				});
 				Cursor.setCursor(Cursor.getNode(),Cursor.getCursorPos());
-				
-				if(recursionLevel!=0 && node!=null && !once){
-					//once = true;
-					tryCutBlock(node,Cursor,0);
-				}
+
 				merged = true;
 			}
-			
-			
-			
-		
 		}while(merged);
 		//console.log(Cursor.getNode().parentElement);
 		//if(Cursor.getNext()!=null)setHighlight(Cursor.getNext());
 		//if(Cursor.getPrev()!=null)setHighlight(Cursor.getPrev());
 
 	}
-	
-	
+
+
 	this.setup=function(Editor_Instance,EditorStack){
 		Instance = Editor_Instance;
 		Editor_Instance.appendChild(this.rowNumberContainer);
 		Editor_Instance.appendChild(textContainer);
 		Editor_Instance.appendChild(this.localCursor.getElement());
 		Editor_Instance.appendChild(textPasteField);
-		for(let i=0;i<10;i++){
+
+		for(let i = 0 ; i < startingRows; i++){
 			addRow();
 		}
-	
+
 		localCursor.setCursor(this.addNewTextBlock(textContainer.children[0],localCursor),0);
-	
+
 
 		if(useServer)EditorStack.initSocket();//only time where a higher level has to call a lower level call
-	
-		
+
+
 	}
-	
-	
-	
-
 }
-
-
-
-
-
-
-
 
 
 /*
@@ -540,29 +549,8 @@ var Interface=function(){//Instance should be a div
  * http://www.w3schools.com/tags/canvas_measuretext.asp
  * */
 
-/*function getStringWidth(node,string) {
-	console.log("nnooooooo");
-    // re-use canvas object for better performance
-    var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-    var context = canvas.getContext("2d");
-    context.font = getComputedStyle(node)['font-size']+" "+getComputedStyle(node)['font-family'];
-    //console.log("hello"+);
-    var metrics = context.measureText(string);
-    return metrics.width;
-}
-
-function getTextWidth(node) {
-    // re-use canvas object for better performance
-    var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
-    var context = canvas.getContext("2d");
-    context.font = getComputedStyle(node)['font-size']+" "+getComputedStyle(node)['font-family'];
-    var metrics = context.measureText(node.innerHTML);
-    return metrics.width;
-}*/
-
-
 function Editor() {
-	
+
 	Controller.prototype = new Interface();
 	Controller.prototype.constructor = Controller;
 	if(useServer){
@@ -573,29 +561,25 @@ function Editor() {
 		Event.prototype = new Controller();
 	}
 	Event.prototype.constructor = Event;
-	
+
 	return new Event();
 
 }
 
-
-
-
-
 window.onload=function(){
 	loadDOMExtension();
 	theme.loadTheme(EditorTheme);
-	
-	
+
+
 	var editor = new Editor();
-	editor.setID("editor1");
+	editor.setID("editor1" + Math.random());
 	editor.setup(Field,editor);
-	
-	
+
+
 	var editor1 = new Editor();
-	editor1.setID("editor2");
+	editor1.setID("editor2" + Math.random());
 	editor1.setup(Field1,editor1);
-	
-	
-	
+
+
+
 }

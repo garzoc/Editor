@@ -9,91 +9,91 @@ const filename = "test.txt"
  * */
 
 module.exports=new function(){
-	
-	
+
+
 	/*Git("data");
 	Git.init("username");
 	Git.pull("https://github.com/username/test.git","master");
 	Git.commit("test");
 	/*http://stackoverflow.com/questions/5343068/is-there-a-way-to-skip-password-typing-when-using-https-on-github*/
-	
+
 	//Git.push("https://username:"+pass+"@github.com/username/test.git");
 
-	
+
 	var TEXT=["Hello World"];
-	
-	
-	
-	
+
+
+
+
 	String.prototype.insert = function (string,index) {
 		if (index > 0)
 			return this.substring(0, index) + string + this.substring(index, this.length);
 		else
 			return string + this;
 	}
-	
+
 	String.prototype.remove = function (pos,count) {
-		return this.substring(0, pos) + this.substring(pos+count, this.length);	
+		return this.substring(0, pos) + this.substring(pos+count, this.length);
 	}
-	
-	
+
+
 	this.passToEvents=function(messageContext,CB){
 		if(messageContext.Action!=undefined && this[messageContext.Action]!=undefined){
-			addRow(messageContext.Row-TEXT.length);
+			addRow(messageContext.Row + 1 -TEXT.length);
 			if(printEvents)console.log(messageContext.Action);
-			this[messageContext.Action](messageContext,CB,CB.Cursor);
+			this[messageContext.Action](messageContext, CB, CB.Cursor);
 		}else{
 			if(printUnknownEvents)console.log(messageContext.Action);
 			CB.forward(messageContext);
 		}
 	}
-	
-	
+
+
 	function addRow(times){
 		if(!times)times = 1;
 		for(let i = 0; i <times ; i++){
 			TEXT.push("");
 		}
 	}
-	
-	
+
+
 	this.OnTab=function(e,fn,Cursor){
 		TEXT[e.Row]=TEXT[e.Row].insert("\t",e.Col);
-		
+
 		Cursor.forEachOnRow(function(cursor){
 			if(Cursor.getIndex() <= cursor.getIndex()){
 				cursor.setIndex(cursor.getIndex()+1);
 			}
-		
+
 		});
 		Cursor.setIndex(Cursor.getIndex()+1);
-		
+
 		fn.forward(e);
-		
+
 	}
-	
-	
+
+
 	this.OnSpace=function(e,fn,Cursor){
 		TEXT[e.Row]=TEXT[e.Row].insert(" ",e.Col);
-		
+
 		Cursor.forEachOnRow(function(cursor){
 			if(Cursor.getIndex() <= cursor.getIndex()){
 				cursor.setIndex(cursor.getIndex()+1);
 			}
-		
+
 		});
 		Cursor.setIndex(Cursor.getIndex()+1);
-		
-		
+
+
 		fn.forward(e);
 	}
-	
+
 	this.OnEnter=function(e,fn,Cursor){
 		TEXT.splice(e.Row+1,0,"");
 		var string=TEXT[e.Row].substring(e.Col,TEXT[e.Row].length);
 		TEXT[e.Row]=TEXT[e.Row].substring(0,e.Col);
 		TEXT[e.Row+1]=string;
-		
+
 		var CursorSet=Cursor.getCursorSet();
 		for(c in CursorSet){
 			if(Cursor.getRow()==CursorSet[c].getRow() && Cursor.getIndex() <= CursorSet[c].getIndex()){
@@ -101,15 +101,15 @@ module.exports=new function(){
 				CursorSet[c].setRow(CursorSet[c].getRow()+1);
 			}
 		}
-		
-		
+
+
 		fn.forward(e);
 		//Cursor.setPos(Cursor.getRow(),Cursor.getPos()+1);
 	}
-	
+
 	this.OnBackSpace=function(e,fn,Cursor){
 		if(e.Row!=0)var length=TEXT[e.Row-1];
-		
+
 		if(e.Col!=0){
 			TEXT[e.Row]=TEXT[e.Row].remove(e.Col-1,1);
 			var CursorSet=Cursor.getCursorSet();
@@ -132,32 +132,32 @@ module.exports=new function(){
 			}
 			//Cursor.setIndex(Cursor.getIndex()+e.absPos.Col);
 			//Cursor.setRow(Cursor.getRow()-1);
-		
+
 		}
-		
+
 		fn.forward(e);
 	}
-	
 
-	this.OnAddChar=function(e,fn,Cursor){
-		
+
+	this.OnAddChar=function(e, fn, Cursor){
+
 		TEXT[e.Row]=TEXT[e.Row].insert(e.Char,e.Col);
 		//var cursors=[Cursor];
 		var CursorSet=Cursor.getCursorSet();
-		for(c in CursorSet){			
+		for(c in CursorSet){
 			if(Cursor.getRow()==CursorSet[c].getRow() && Cursor.getIndex() <= CursorSet[c].getIndex()){
-				
+
 				CursorSet[c].setIndex(CursorSet[c].getIndex()+1);
 			}
 		}
 		//Cursor.setIndex(Cursor.getIndex()+1);
-		
-	
+
+
 		fn.forward(e);
 	}
-	
+
 	this.OnPaste=function(e,fn,Cursor){//ubsupported
-		
+
 		var x={};
 		x.Row=e.Row;
 		x.absPos=e.absPos;
@@ -176,59 +176,61 @@ module.exports=new function(){
 			}
 		}
 		//TEXT[e.Row]=TEXT[e.Row].insert(e.Char,e.absPos.Col);
-		
+
 		fn.forward(e);
 	}
-	
+
 	this.OnFullSync=function(e,fn){
 		var messageContext={};
 		messageContext.Action="OnFullSync";
 		messageContext.Text=TEXT;
 		fn.respond(messageContext);
 	}
-	
-	
-	
-	this.OnRowSync=function(e,fn){
+
+
+
+	this.OnRowSync=function(e, fn, Cursor){
 		var messageContext={};
 		messageContext.Action="OnRowSync";
-		messageContext.Row=e.Row;
+		messageContext.Row = e.Row;
+		messageContext.Col = Cursor.getIndex(); //TODO Unitfy naming, maybe return all cursors on this row
 		messageContext.Text=TEXT[e.Row];
-		fn.sendToAll(messageContext);
-		
+		fn.respond(messageContext);
+		//fn.sendToAll(messageContext);
+
 	}
-	
+
 	this.OnSave=function(e,fn){
 		var fileContent=TEXT[0];
 		for(var i=1;i<TEXT.length;i++){
 			fileContent+="\n"+TEXT[i];
-		
+
 		}
-		
+
 		var fs = require('fs');
-		
+
 		if(fs.existsSync(filePath+filename)){
-			
+
 		}
-		
+
 		fs.writeFileSync(filePath+filename, fileContent, function(err) {
 			if(err) {
 				return console.log(err);
 			}
-	
+
 		});
 		console.log("File Saved");
 	}
-	
+
 	this.OnLoad=function(e,fn){
-		
+
 		var fs = require('fs');
 		fs.readFile(filePath+filename, function (err, data) {
 			if (err) {
-				throw err; 
+				throw err;
 			}
 		});
-		
+
 		TEXT=[""];
 		var string=fs.toString();
 		var currentRow=0;
@@ -240,9 +242,9 @@ module.exports=new function(){
 				TEXT[currentRow]+=string.charAt(i);
 			}
 		}
-		
+
 		if(e!=undefined)OnFullSync(e,fn);
 	}
-	
+
 
 }
